@@ -75,16 +75,7 @@ install_cacti() {
     apt update
 
     # Install Apache & PHP
-    apt install -y apache2 php-mysql libapache2-mod-php
-
-    # Install PHP Extensions
-    apt install -y php-xml php-ldap php-mbstring php-gd php-gmp
-
-    # Install MariaDB
-    apt install -y mariadb-server mariadb-client
-
-    # Install SNMP
-    apt install -y snmp php-snmp rrdtool librrds-perl
+    apt install -y apache2 php-mysql libapache2-mod-php php-xml php-ldap php-mbstring php-gd php-gmp php-intl mariadb-server mariadb-client snmp php-snmp rrdtool librrds-perl
 
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
