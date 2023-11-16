@@ -34,7 +34,12 @@ download_file() {
     file_name=$(basename $file_url)
 
     if [ ! -f "$file_name" ]; then
-        wget $file_url
+        wget -q --timeout=30 $file_url
+        # Add additional checks if the download failed
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error: Download failed.${NC}"
+            exit 1
+        fi
     fi
 }
 
