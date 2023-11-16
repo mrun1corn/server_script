@@ -126,7 +126,7 @@ install_cacti() {
 	# Create a new site for Cacti
 	apache_config_file="/etc/apache2/sites-available/cacti.conf"
 	add_lines_to_config "$apache_config_file" "Alias /cacti /opt/cacti"
-	add_lines_to_config "$apache_config_file" "<Directory /opt/cacti>"
+	add_lines_to_config "$apache_config_file" "  <Directory /opt/cacti>"
 	add_lines_to_config "$apache_config_file" "    Options +FollowSymLinks"
 	add_lines_to_config "$apache_config_file" "    AllowOverride None"
 	add_lines_to_config "$apache_config_file" "    <IfVersion >= 2.3>"
@@ -169,13 +169,9 @@ sudo mysql -u root -p"${mariadb_root_password}" -e "GRANT SELECT ON mysql.time_z
 sudo mysql -u root -p"${mariadb_root_password}" -e "FLUSH PRIVILEGES;"
 
 
-	# Download & Configure Cacti if not already downloaded
-	cacti_archive="cacti-latest.tar.gz"
-	download_file "https://www.cacti.net/downloads/$cacti_archive"
+	wget https://www.cacti.net/downloads/cacti-latest.tar.gz
 	tar -zxvf cacti-latest.tar.gz
-	sudo mv cacti-1* /opt/cacti/
-
-
+	sudo mv cacti-1* /opt/cacti
 
     sudo mysql -u root -p cacti < /opt/cacti/cacti.sql
     config_php_file="/opt/cacti/include/config.php"
