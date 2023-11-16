@@ -169,7 +169,7 @@ sudo mysql -u root -p"${mariadb_root_password}" -e "FLUSH PRIVILEGES;"
 	cacti_archive="cacti-latest.tar.gz"
 	download_file "https://www.cacti.net/downloads/$cacti_archive"
 	tar -zxvf cacti-latest.tar.gz
-	sudo mv cacti-1* /opt/cacti
+	sudo mv cacti-1* /opt/cacti/
 
 
 
