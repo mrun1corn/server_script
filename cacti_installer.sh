@@ -79,13 +79,13 @@ install_cacti() {
     # Prerequisites
     apt update
 
-    # Allow time for package reload to complete
-    echo -e "${GREEN}Waiting for package reload to complete.${NC}"
-    sleep 5  # Adjust the sleep duration as needed
-
     # Install Apache & PHP
     apt install -yqq apache2 php-mysql libapache2-mod-php php-xml php-ldap php-mbstring php-gd php-gmp php-intl mariadb-server mariadb-client snmp php-snmp rrdtool librrds-perl
 
+    # Allow time for package reload to complete
+    echo -e "${GREEN}Waiting for package reload to complete.${NC}"
+    sleep 5  # Adjust the sleep duration as needed
+    
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
     add_lines_to_config "$config_file" "# Add/Update"
