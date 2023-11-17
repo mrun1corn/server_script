@@ -43,6 +43,16 @@ add_lines_to_config() {
     fi
 }
 
+# Function to get PHP version
+get_php_version() {
+    php_version=$(php -v | grep -o 'PHP [0-9]\.[0-9]' | cut -d' ' -f2)
+    if [ -n "$php_version" ]; then
+        echo "$php_version"
+    else
+        echo "0"
+    fi
+}
+
 # Function to perform Cacti installation
 install_cacti() {
     check_root
