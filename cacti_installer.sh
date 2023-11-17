@@ -5,6 +5,11 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" > /dev/null 2>&1
+}
+
 # Function to check for root privileges
 check_root() {
     if [[ $EUID -ne 0 ]]; then
@@ -31,10 +36,10 @@ prompt_yes_no() {
 # Function to download a file if it doesn't exist
 download_file() {
     file_url=$1
-    file_name=$(basename $file_url)
+    file_name=$(basename "$file_url")
 
     if [ ! -f "$file_name" ]; then
-        wget $file_url
+        wget "$file_url"
     fi
 }
 
@@ -61,6 +66,22 @@ get_php_version() {
 # Function to perform Cacti installation
 install_cacti() {
     check_root
+
+    # Check for required commands
+    if ! command_exists "apt" && ! command_exists "yum"; then
+        echo -e "${RED}Error: This script requires either 'apt' or 'yum' package manager.${NC}"
+        exit 1
+    fi
+
+    if ! command_exists "apache2ctl" && ! command_exists "httpd"; then
+        echo -e "${RED}Error: Apache server not found.${NC}"
+        exit 1
+    fi
+
+    if ! command_exists "systemctl" && ! command_exists "service"; then
+        echo -e "${RED}Error: Unable to determine init system.${NC}"
+        exit 1
+    fi
 
     # Check for the latest versions
     latest_php_version=$(apt show php | grep "Version" | awk '{print $2}')
