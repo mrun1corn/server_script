@@ -33,16 +33,6 @@ prompt_yes_no() {
     fi
 }
 
-# Function to download a file if it doesn't exist
-download_file() {
-    file_url=$1
-    file_name=$(basename "$file_url")
-
-    if [ ! -f "$file_name" ]; then
-        wget "$file_url"
-    fi
-}
-
 # Function to add lines to a configuration file if they don't already exist
 add_lines_to_config() {
     config_file=$1
@@ -53,42 +43,9 @@ add_lines_to_config() {
     fi
 }
 
-# Function to get PHP version
-get_php_version() {
-    php_version=$(php -v | grep -o 'PHP [0-9]\.[0-9]' | cut -d' ' -f2)
-    if [ -n "$php_version" ]; then
-        echo "$php_version"
-    else
-        echo "0"
-    fi
-}
-
 # Function to perform Cacti installation
 install_cacti() {
     check_root
-
-    # Check for required commands
-    if ! command_exists "apt" && ! command_exists "yum"; then
-        echo -e "${RED}Error: This script requires either 'apt' or 'yum' package manager.${NC}"
-        exit 1
-    fi
-
-    if ! command_exists "apache2ctl" && ! command_exists "httpd"; then
-        echo -e "${RED}Error: Apache server not found.${NC}"
-        exit 1
-    fi
-
-    if ! command_exists "systemctl" && ! command_exists "service"; then
-        echo -e "${RED}Error: Unable to determine init system.${NC}"
-        exit 1
-    fi
-
-    # Check for the latest versions
-    latest_php_version=$(apt show php | grep "Version" | awk '{print $2}')
-    latest_apache_version=$(apache2ctl -v | grep -o 'Apache/.* (Ubuntu)' | cut -d' ' -f2)
-    latest_mariadb_version=$(apt show mariadb-server | grep "Version" | awk '{print $2}')
-    latest_cacti_version=$(curl -s https://www.cacti.net/downloads/ | grep -o 'cacti-.*\.tar\.gz' | head -1 | sed 's/cacti-\(.*\)\.tar\.gz/\1/')
-
     # Display welcome message
     echo -e "${GREEN}Welcome to the Cacti Installation Script!${NC}"
 
@@ -185,8 +142,6 @@ sleep 5  # Adjust the sleep duration as needed
 	add_lines_to_config "$apache_config_file" ""
 	add_lines_to_config "$apache_config_file" "    DirectoryIndex index.php"
 	add_lines_to_config "$apache_config_file" "</Directory>"
-
-
 
 echo "Enter MariaDB root password:"
 read -s mariadb_root_password
