@@ -76,10 +76,6 @@ fi
 # Allow time for package reload to complete
 echo -e "${GREEN}Waiting for package reload to complete.${NC}"
 sleep 5  # Adjust the sleep duration as needed
-
-    # Allow time for package reload to complete
-    echo -e "${GREEN}Waiting for package reload to complete.${NC}"
-    sleep 5  # Adjust the sleep duration as needed
     
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
