@@ -154,8 +154,15 @@ add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
 add_lines_to_config "$apache_config_file" "</Directory>"
 
 
-echo "Enter MariaDB root password:"
+echo -n "Enter MariaDB root password: "
 read -s mariadb_root_password
+
+# Check MariaDB password
+mysql -u root -p"${mariadb_root_password}" -e "SELECT 1;" >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Error: Incorrect MariaDB root password.${NC}"
+    exit 1
+fi
 
 # Create Database and Set Permissions
 sudo mysql -u root -p"${mariadb_root_password}" -e "CREATE DATABASE cacti;"
