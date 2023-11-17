@@ -71,11 +71,23 @@ install_cacti() {
     # Display welcome message
     echo -e "${GREEN}Welcome to the Cacti Installation Script!${NC}"
 
-    # Prerequisites
+# Install Apache & PHP
+if command -v apt &> /dev/null; then
+    # Debian/Ubuntu
     apt update
-
-    # Install Apache & PHP
     apt install -yqq apache2 php-mysql libapache2-mod-php php-xml php-ldap php-mbstring php-gd php-gmp php-intl mariadb-server mariadb-client snmp php-snmp rrdtool librrds-perl
+elif command -v yum &> /dev/null; then
+    # Red Hat/CentOS
+    yum makecache
+    yum install -y httpd php php-mysql php-xml php-ldap php-mbstring php-gd php-gmp php-intl mariadb-server mariadb php-snmp rrdtool perl-RRDTool
+else
+    echo -e "${RED}Error: Unsupported package manager.${NC}"
+    exit 1
+fi
+
+# Allow time for package reload to complete
+echo -e "${GREEN}Waiting for package reload to complete.${NC}"
+sleep 5  # Adjust the sleep duration as needed
 
     # Allow time for package reload to complete
     echo -e "${GREEN}Waiting for package reload to complete.${NC}"
