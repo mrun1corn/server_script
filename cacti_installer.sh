@@ -82,7 +82,7 @@ get_mariadb_root_password() {
     local max_attempts=3
     for ((attempt = 1; attempt <= max_attempts; attempt++)); do
         echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
-        read -s mariadb_root_password
+        read mariadb_root_password
         echo  # Move to a new line after password entry
 
         if [ -n "$mariadb_root_password" ]; then
