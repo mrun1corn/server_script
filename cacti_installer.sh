@@ -122,6 +122,7 @@ sleep 5  # Adjust the sleep duration as needed
 # Create a new site for Cacti
 apache_config_file="/etc/apache2/sites-available/cacti.conf"
 add_lines_to_config "$apache_config_file" "Alias /cacti /opt/cacti"
+add_lines_to_config "$apache_config_file" ""
 add_lines_to_config "$apache_config_file" "  <Directory /opt/cacti>"
 add_lines_to_config "$apache_config_file" "      Options +FollowSymLinks"
 add_lines_to_config "$apache_config_file" "      AllowOverride None"
