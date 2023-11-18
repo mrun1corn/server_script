@@ -35,11 +35,11 @@ prompt_yes_no() {
 
 # Function to add lines to a configuration file if they don't already exist
 add_lines_to_config() {
-    config_file=$1
-    lines=$2
+    config_file="$1"
+    lines="$2"
 
-    if ! grep -Fxq "$lines" "$config_file"; then
-        echo "$lines" | sudo tee -a "$config_file" > /dev/null
+    if ! grep -q "$lines" "$config_file"; then
+        echo "$lines" | tee -a "$config_file" > /dev/null
     fi
 }
 
@@ -149,16 +149,9 @@ add_lines_to_config "$apache_config_file" ""
 add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
 add_lines_to_config "$apache_config_file" "</Directory>"
 
-
 echo -n "Enter MariaDB root password: "
 read -s mariadb_root_password
-
-# Check MariaDB password
-mysql -u root -p"${mariadb_root_password}" -e "SELECT 1;" >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Error: Incorrect MariaDB root password.${NC}"
-    exit 1
-fi
+echo
 
 # Create Database and Set Permissions
 sudo mysql -u root -p"${mariadb_root_password}" -e "CREATE DATABASE cacti;"
