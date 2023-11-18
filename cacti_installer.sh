@@ -150,16 +150,22 @@ add_lines_to_config "$apache_config_file" ""
 add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
 add_lines_to_config "$apache_config_file" "</Directory>"
 
-# Prompt for MariaDB root password
-while true; do
-    echo -n "Enter MariaDB root password: "
-    read -s mariadb_root_password
-    echo
+# Prompt for MariaDB root password with limited attempts
+max_attempts=3
+for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+    echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
+    exec 3<&0  # Save the current stdin
+    read -s mariadb_root_password <&3  # Read from the saved stdin
+    exec 3<&-  # Close the temporary file descriptor
 
     if [ -n "$mariadb_root_password" ]; then
         break
     else
         echo -e "\n${RED}Error: Password cannot be empty.${NC}"
+        if [ "$attempt" -eq "$max_attempts" ]; then
+            echo -e "${RED}Maximum attempts reached. Exiting.${NC}"
+            exit 1
+        fi
     fi
 done
 
