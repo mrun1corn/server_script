@@ -150,13 +150,18 @@ add_lines_to_config "$apache_config_file" ""
 add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
 add_lines_to_config "$apache_config_file" "</Directory>"
 
-echo -n "Enter MariaDB root password: "
-read -s mariadb_root_password
-if [ -z "$mariadb_root_password" ]; then
-    echo -e "\n${RED}Error: Password cannot be empty.${NC}"
-    exit 1
-fi
-echo
+# Prompt for MariaDB root password
+while true; do
+    echo -n "Enter MariaDB root password: "
+    read -s mariadb_root_password
+    echo
+
+    if [ -n "$mariadb_root_password" ]; then
+        break
+    else
+        echo -e "\n${RED}Error: Password cannot be empty.${NC}"
+    fi
+done
 
 # Create Database and Set Permissions
 sudo mysql -u root -p"${mariadb_root_password}" -e "CREATE DATABASE cacti;"
