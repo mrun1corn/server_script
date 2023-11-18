@@ -79,24 +79,28 @@ sleep 5  # Adjust the sleep duration as needed
 
 # Function to prompt for MariaDB root password
 get_mariadb_root_password() {
-    local max_attempts=3
-    for ((attempt = 1; attempt <= max_attempts; attempt++)); do
-        exec 3<&0  # Save the current stdin
+    attempt=1
+    max_attempts=3
+
+    while [ "$attempt" -le "$max_attempts" ]; do
         echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
-        read -r mariadb_root_password <&3  # Read from the saved stdin
+        read -s mariadb_root_password
 
         if [ -n "$mariadb_root_password" ]; then
             break
         else
+            attempt=$((attempt + 1))
             echo -e "\n${RED}Error: Password cannot be empty.${NC}"
-            if [ "$attempt" -eq "$max_attempts" ]; then
+            if [ "$attempt" -le "$max_attempts" ]; then
+                echo "Please try again."
+            else
                 echo -e "${RED}Maximum attempts reached. Exiting.${NC}"
                 exit 1
             fi
         fi
     done
 }
-    
+
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
     add_lines_to_config "$config_file" "# Add/Update"
