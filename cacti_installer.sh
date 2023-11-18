@@ -150,7 +150,11 @@ install_cacti() {
     add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
     add_lines_to_config "$apache_config_file" "</Directory>"
 
-    echo "Enter MariaDB root password:"
+    wget https://www.cacti.net/downloads/cacti-latest.tar.gz
+    tar -zxvf cacti-latest.tar.gz
+    sudo mv cacti-1* /opt/cacti
+
+    echo "Enter password until its stop asking:"
     read mariadb_root_password
 
     # Create Database and Set Permissions
@@ -165,10 +169,6 @@ install_cacti() {
     sudo mysql -u root -p"${mariadb_root_password}" -e "GRANT SELECT ON mysql.time_zone_name TO cacti@localhost;"
     sudo mysql -u root -p"${mariadb_root_password}" -e "FLUSH PRIVILEGES;"
 
-    wget https://www.cacti.net/downloads/cacti-latest.tar.gz
-    tar -zxvf cacti-latest.tar.gz
-    sudo mv cacti-1* /opt/cacti
-
     sudo mysql -u root -p cacti < /opt/cacti/cacti.sql
     config_php_file="/opt/cacti/include/config.php"
     add_lines_to_config "$config_php_file" "<?php"
@@ -176,7 +176,7 @@ install_cacti() {
     add_lines_to_config "$config_php_file" "\$database_default  = \"cacti\";"
     add_lines_to_config "$config_php_file" "\$database_hostname = \"localhost\";"
     add_lines_to_config "$config_php_file" "\$database_username = \"cacti\";"
-    add_lines_to_config "$config_php_file" "\$database_password = \"${mariadb_root_password}\";"
+    add_lines_to_config "$config_php_file" "\$database_password = \"cacti\";"
     add_lines_to_config "$config_php_file" "\$database_port     = \"3306\";"
     add_lines_to_config "$config_php_file" "\$database_ssl      = false;"
 
