@@ -152,6 +152,10 @@ add_lines_to_config "$apache_config_file" "</Directory>"
 
 echo -n "Enter MariaDB root password: "
 read -s mariadb_root_password
+if [ -z "$mariadb_root_password" ]; then
+    echo -e "\n${RED}Error: Password cannot be empty.${NC}"
+    exit 1
+fi
 echo
 
 # Create Database and Set Permissions
