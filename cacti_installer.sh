@@ -82,7 +82,9 @@ get_mariadb_root_password() {
     local max_attempts=3
     for ((attempt = 1; attempt <= max_attempts; attempt++)); do
         echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
+        stty -echo  # Turn off echoing
         read mariadb_root_password
+        stty echo  # Turn on echoing
         echo  # Move to a new line after password entry
 
         if [ -n "$mariadb_root_password" ]; then
@@ -96,6 +98,7 @@ get_mariadb_root_password() {
         fi
     done
 }
+
     
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
