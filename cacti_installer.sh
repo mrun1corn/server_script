@@ -77,30 +77,6 @@ fi
 echo -e "${GREEN}Waiting for package reload to complete.${NC}"
 sleep 5  # Adjust the sleep duration as needed
 
-# Function to prompt for MariaDB root password
-get_mariadb_root_password() {
-    attempt=1
-    max_attempts=3
-
-    while [ "$attempt" -le "$max_attempts" ]; do
-        echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
-        read -s mariadb_root_password
-
-        if [ -n "$mariadb_root_password" ]; then
-            break
-        else
-            attempt=$((attempt + 1))
-            echo -e "\n${RED}Error: Password cannot be empty.${NC}"
-            if [ "$attempt" -le "$max_attempts" ]; then
-                echo "Please try again."
-            else
-                echo -e "${RED}Maximum attempts reached. Exiting.${NC}"
-                exit 1
-            fi
-        fi
-    done
-}
-
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
     add_lines_to_config "$config_file" "# Add/Update"
@@ -175,17 +151,14 @@ add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
 add_lines_to_config "$apache_config_file" "</Directory>"
 
 
-# Run the function to get MariaDB root password
-get_mariadb_root_password
-
+echo "Enter MariaDB root password:"
+read  mariadb_root_password
 # Create Database and Set Permissions
 sudo mysql -u root -p"${mariadb_root_password}" -e "CREATE DATABASE cacti;"
 sudo mysql -u root -p"${mariadb_root_password}" -e "GRANT ALL ON cacti.* TO cacti@localhost IDENTIFIED BY 'cacti';"
 sudo mysql -u root -p"${mariadb_root_password}" -e "FLUSH PRIVILEGES;"
-
 # Import MariaDB Time Zone data
 sudo mysql -u root -p"${mariadb_root_password}" mysql < /usr/share/mysql/mysql_test_data_timezone.sql
-
 # Grant SELECT privilege on time_zone_name table
 sudo mysql -u root -p"${mariadb_root_password}" -e "GRANT SELECT ON mysql.time_zone_name TO cacti@localhost;"
 sudo mysql -u root -p"${mariadb_root_password}" -e "FLUSH PRIVILEGES;"
