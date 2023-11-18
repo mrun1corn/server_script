@@ -81,11 +81,9 @@ sleep 5  # Adjust the sleep duration as needed
 get_mariadb_root_password() {
     local max_attempts=3
     for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+        exec 3<&0  # Save the current stdin
         echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
-        stty -echo  # Turn off echoing
-        read mariadb_root_password
-        stty echo  # Turn on echoing
-        echo  # Move to a new line after password entry
+        read -r mariadb_root_password <&3  # Read from the saved stdin
 
         if [ -n "$mariadb_root_password" ]; then
             break
@@ -98,7 +96,6 @@ get_mariadb_root_password() {
         fi
     done
 }
-
     
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
