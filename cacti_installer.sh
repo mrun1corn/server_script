@@ -119,36 +119,8 @@ install_cacti() {
         echo -e "${RED}Error: PHP version not detected or unsupported.${NC}"
     fi
 
-    # Create a new site for Cacti
-    apache_config_file="/etc/apache2/sites-available/cacti.conf"
-    add_lines_to_config "$apache_config_file" "Alias /cacti /opt/cacti"
-    add_lines_to_config "$apache_config_file" ""
-    add_lines_to_config "$apache_config_file" "  <Directory /opt/cacti>"
-    add_lines_to_config "$apache_config_file" "      Options +FollowSymLinks"
-    add_lines_to_config "$apache_config_file" "      AllowOverride None"
-    add_lines_to_config "$apache_config_file" "      <IfVersion >= 2.3>"
-    add_lines_to_config "$apache_config_file" "      Require all granted"
-    add_lines_to_config "$apache_config_file" "      </IfVersion>"
-    add_lines_to_config "$apache_config_file" "      <IfVersion < 2.3>"
-    add_lines_to_config "$apache_config_file" "      Order Allow,Deny"
-    add_lines_to_config "$apache_config_file" "      Allow from all"
-    add_lines_to_config "$apache_config_file" "      </IfVersion>"
-    add_lines_to_config "$apache_config_file" ""
-    add_lines_to_config "$apache_config_file" "   AddType application/x-httpd-php .php"
-    add_lines_to_config "$apache_config_file" ""
-    add_lines_to_config "$apache_config_file" "<IfModule mod_php.c>"
-    add_lines_to_config "$apache_config_file" "      php_flag magic_quotes_gpc Off"
-    add_lines_to_config "$apache_config_file" "      php_flag short_open_tag On"
-    add_lines_to_config "$apache_config_file" "      php_flag register_globals Off"
-    add_lines_to_config "$apache_config_file" "      php_flag register_argc_argv On"
-    add_lines_to_config "$apache_config_file" "      php_flag track_vars On"
-    add_lines_to_config "$apache_config_file" "      # this setting is necessary for some locales"
-    add_lines_to_config "$apache_config_file" "      php_value mbstring.func_overload 0"
-    add_lines_to_config "$apache_config_file" "      php_value include_path ."
-    add_lines_to_config "$apache_config_file" " </IfModule>"
-    add_lines_to_config "$apache_config_file" ""
-    add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
-    add_lines_to_config "$apache_config_file" "</Directory>"
+    #config file of apache for cacti
+    sudo curl -s https://raw.githubusercontent.com/mrun1corn/Server_script/main/cacti.conf -o /etc/apache2/sites-enabled/cacti.conf
 
     wget https://www.cacti.net/downloads/cacti-latest.tar.gz
     tar -zxvf cacti-latest.tar.gz
