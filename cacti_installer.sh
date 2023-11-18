@@ -76,6 +76,26 @@ fi
 # Allow time for package reload to complete
 echo -e "${GREEN}Waiting for package reload to complete.${NC}"
 sleep 5  # Adjust the sleep duration as needed
+
+# Function to prompt for MariaDB root password
+get_mariadb_root_password() {
+    local max_attempts=3
+    for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+        echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
+        read -s mariadb_root_password
+        echo  # Move to a new line after password entry
+
+        if [ -n "$mariadb_root_password" ]; then
+            break
+        else
+            echo -e "\n${RED}Error: Password cannot be empty.${NC}"
+            if [ "$attempt" -eq "$max_attempts" ]; then
+                echo -e "${RED}Maximum attempts reached. Exiting.${NC}"
+                exit 1
+            fi
+        fi
+    done
+}
     
     # Database Tuning
     config_file="/etc/mysql/mariadb.conf.d/50-server.cnf"
@@ -150,24 +170,9 @@ add_lines_to_config "$apache_config_file" ""
 add_lines_to_config "$apache_config_file" "   DirectoryIndex index.php"
 add_lines_to_config "$apache_config_file" "</Directory>"
 
-# Prompt for MariaDB root password with limited attempts
-max_attempts=3
-for ((attempt = 1; attempt <= max_attempts; attempt++)); do
-    echo -n "Enter MariaDB root password (Attempt $attempt/$max_attempts): "
-    exec 3<&0  # Save the current stdin
-    read -s mariadb_root_password <&3  # Read from the saved stdin
-    exec 3<&-  # Close the temporary file descriptor
 
-    if [ -n "$mariadb_root_password" ]; then
-        break
-    else
-        echo -e "\n${RED}Error: Password cannot be empty.${NC}"
-        if [ "$attempt" -eq "$max_attempts" ]; then
-            echo -e "${RED}Maximum attempts reached. Exiting.${NC}"
-            exit 1
-        fi
-    fi
-done
+# Run the function to get MariaDB root password
+get_mariadb_root_password
 
 # Create Database and Set Permissions
 sudo mysql -u root -p"${mariadb_root_password}" -e "CREATE DATABASE cacti;"
