@@ -5,6 +5,5 @@ cd haste-server
 npm install
 sudo npm install -g pm2
 pm2 start server.js --name="haste-server"
-pm2 save
 pm2 startup
 pm2 save
