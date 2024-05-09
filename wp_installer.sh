@@ -121,7 +121,7 @@ fi
 
 # Download WordPress if not already downloaded
 if ! is_directory_exists /var/www/wordpress; then
-    cd /var/www/html || display_error "Failed to change directory to /var/www/html"
+    cd /var/www/ || display_error "Failed to change directory to /var/www/"
     wget https://wordpress.org/latest.tar.gz || display_error "Failed to download WordPress"
     tar -xzvf latest.tar.gz || display_error "Failed to extract WordPress"
     chown -R www-data:www-data wordpress || display_error "Failed to change ownership"
