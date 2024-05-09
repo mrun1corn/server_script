@@ -43,18 +43,18 @@ is_file_exists() {
 
 # Function to check if a MySQL user exists
 is_mysql_user_exists() {
-    mysql -e "SELECT 1 FROM mysql.user WHERE User='$1'" &> /dev/null
+    mariadb -e "SELECT 1 FROM mysql.user WHERE User='$1'" &> /dev/null
 }
 
 # Function to check if a MySQL database exists
 is_mysql_database_exists() {
-    mysql -e "USE $1" &> /dev/null
+    mariadb -e "USE $1" &> /dev/null
 }
 
 # Function to install packages on Debian/Ubuntu
 install_packages_debian() {
     apt update || display_error "Failed to update system"
-    apt install -y apache2 mysql-server php php-mysql libapache2-mod-php php-cli wget || display_error "Failed to install LAMP stack"
+    apt install -y apache2 mariadb-server php php-mysql libapache2-mod-php php-cli wget || display_error "Failed to install LAMP stack"
 }
 
 # Function to install packages on RHEL/CentOS
@@ -69,17 +69,12 @@ install_packages_fedora() {
     dnf -y install httpd mariadb-server php php-mysqlnd wget || display_error "Failed to install LAMP stack"
 }
 
-# Check if script is run as root
-if [ "$(id -u)" -ne 0 ]; then
-    display_error "This script must be run as root"
-fi
-
 # Detect package manager
 if command -v apt &> /dev/null; then
     PACKAGE_MANAGER="apt"
     is_package_installed=is_package_installed_debian
     install_packages=install_packages_debian
-    MYSQL_SERVICE="mysql"
+    MYSQL_SERVICE="mariadb"
 elif command -v yum &> /dev/null; then
     PACKAGE_MANAGER="yum"
     is_package_installed=is_package_installed_rhel
@@ -92,16 +87,6 @@ elif command -v dnf &> /dev/null; then
     MYSQL_SERVICE="mariadb"
 else
     display_error "Unsupported package manager. Script supports only apt (Debian/Ubuntu), yum (RHEL/CentOS), and dnf (Fedora)."
-fi
-
-# Install LAMP stack if not already installed
-if ! $is_package_installed apache2 || ! $is_package_installed $MYSQL_SERVICE || ! $is_package_installed php || ! $is_package_installed wget; then
-    $install_packages || display_error "Failed to install LAMP stack"
-fi
-
-# Start MySQL service if not already running
-if ! systemctl is-active --quiet $MYSQL_SERVICE; then
-    systemctl start $MYSQL_SERVICE || display_error "Failed to start $MYSQL_SERVICE service"
 fi
 
 # Ask for WordPress username and password
@@ -135,7 +120,7 @@ if ! is_mysql_database_exists wordpress || ! is_mysql_user_exists "$wp_user"; th
 fi
 
 # Download WordPress if not already downloaded
-if ! is_directory_exists /var/www/html/wordpress; then
+if ! is_directory_exists /var/www/wordpress; then
     cd /var/www/html || display_error "Failed to change directory to /var/www/html"
     wget https://wordpress.org/latest.tar.gz || display_error "Failed to download WordPress"
     tar -xzvf latest.tar.gz || display_error "Failed to extract WordPress"
@@ -144,20 +129,20 @@ if ! is_directory_exists /var/www/html/wordpress; then
 fi
 
 # Configure wp-config.php with database details if not already configured
-if ! is_file_exists /var/www/html/wordpress/wp-config.php; then
-    cp /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php || display_error "Failed to copy wp-config-sample.php"
-    sed -i "s/database_name_here/wordpress/" /var/www/html/wordpress/wp-config.php || display_error "Failed to replace database name in wp-config.php"
-    sed -i "s/username_here/${wp_user}/" /var/www/html/wordpress/wp-config.php || display_error "Failed to replace database username in wp-config.php"
-    sed -i "s/password_here/${wp_pass}/" /var/www/html/wordpress/wp-config.php || display_error "Failed to replace database password in wp-config.php"
+if ! is_file_exists /var/www/wordpress/wp-config.php; then
+    cp /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php || display_error "Failed to copy wp-config-sample.php"
+    sed -i "s/database_name_here/wordpress/" /var/www/wordpress/wp-config.php || display_error "Failed to replace database name in wp-config.php"
+    sed -i "s/username_here/${wp_user}/" /var/www/wordpress/wp-config.php || display_error "Failed to replace database username in wp-config.php"
+    sed -i "s/password_here/${wp_pass}/" /var/www/wordpress/wp-config.php || display_error "Failed to replace database password in wp-config.php"
 else
-    if ! is_line_in_file "define('DB_NAME', 'wordpress');" /var/www/html/wordpress/wp-config.php; then
-        echo "define('DB_NAME', 'wordpress');" >> /var/www/html/wordpress/wp-config.php || display_error "Failed to add database name line in wp-config.php"
+    if ! is_line_in_file "define('DB_NAME', 'wordpress');" /var/www/wordpress/wp-config.php; then
+        echo "define('DB_NAME', 'wordpress');" >> /var/www/wordpress/wp-config.php || display_error "Failed to add database name line in wp-config.php"
     fi
-    if ! is_line_in_file "define('DB_USER', '${wp_user}');" /var/www/html/wordpress/wp-config.php; then
-        echo "define('DB_USER', '${wp_user}');" >> /var/www/html/wordpress/wp-config.php || display_error "Failed to add database user line in wp-config.php"
+    if ! is_line_in_file "define('DB_USER', '${wp_user}');" /var/www/wordpress/wp-config.php; then
+        echo "define('DB_USER', '${wp_user}');" >> /var/www/wordpress/wp-config.php || display_error "Failed to add database user line in wp-config.php"
     fi
-    if ! is_line_in_file "define('DB_PASSWORD', '${wp_pass}');" /var/www/html/wordpress/wp-config.php; then
-        echo "define('DB_PASSWORD', '${wp_pass}');" >> /var/www/html/wordpress/wp-config.php || display_error "Failed to add database password line in wp-config.php"
+    if ! is_line_in_file "define('DB_PASSWORD', '${wp_pass}');" /var/www/wordpress/wp-config.php; then
+        echo "define('DB_PASSWORD', '${wp_pass}');" >> /var/www/wordpress/wp-config.php || display_error "Failed to add database password line in wp-config.php"
     fi
 fi
 
@@ -166,14 +151,14 @@ if ! is_file_exists /etc/apache2/sites-available/wordpress.conf; then
     cat <<EOF > /etc/apache2/sites-available/wordpress.conf
 <VirtualHost *:${port}>
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/html/wordpress
+    DocumentRoot /var/www/wordpress
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF
 else
-    if ! is_line_in_file "DocumentRoot /var/www/html/wordpress" /etc/apache2/sites-available/wordpress.conf; then
-        sed -i "s#DocumentRoot.*#DocumentRoot /var/www/html/wordpress#" /etc/apache2/sites-available/wordpress.conf || display_error "Failed to update DocumentRoot line in wordpress.conf"
+    if ! is_line_in_file "DocumentRoot /var/www/wordpress" /etc/apache2/sites-available/wordpress.conf; then
+        sed -i "s#DocumentRoot.*#DocumentRoot /var/www/wordpress#" /etc/apache2/sites-available/wordpress.conf || display_error "Failed to update DocumentRoot line in wordpress.conf"
     fi
     if ! is_line_in_file "ErrorLog" /etc/apache2/sites-available/wordpress.conf; then
         sed -i "/DocumentRoot.*a\    ErrorLog \${APACHE_LOG_DIR}/error.log" /etc/apache2/sites-available/wordpress.conf || display_error "Failed to add ErrorLog line in wordpress.conf"
