@@ -1,0 +1,34 @@
+/ip ipsec mode-config
+set [ find default=yes ] name=request-only responder=no src-address-list=VPN \
+    use-responder-dns=exclusively
+add address-pool=vpn address-prefix-length=24 name=VPN split-dns="" static-dns=\
+    "" system-dns=no
+/ip ipsec policy group
+set [ find default=yes ] name=default
+add name=vpn
+/ip ipsec profile
+set [ find default=yes ] dh-group=modp2048,modp1024 dpd-interval=2m \
+    dpd-maximum-failures=5 enc-algorithm=aes-128,3des hash-algorithm=sha1 \
+    lifetime=1d name=default nat-traversal=yes proposal-check=obey
+add dh-group=modp2048,modp1024 dpd-interval=2m dpd-maximum-failures=5 \
+    enc-algorithm=aes-256 hash-algorithm=sha256 lifetime=1d name=vpn \
+    nat-traversal=yes proposal-check=obey
+/ip ipsec peer
+add disabled=no exchange-mode=ike2 name=vpn passive=yes profile=vpn \
+    send-initial-contact=yes
+/ip ipsec proposal
+set [ find default=yes ] auth-algorithms=sha1 disabled=no enc-algorithms=\
+    aes-256-cbc,aes-192-cbc,aes-128-cbc lifetime=30m name=default pfs-group=\
+    modp1024
+add auth-algorithms=sha256,sha1 disabled=no enc-algorithms=aes-256-cbc \
+    lifetime=30m name=vpn pfs-group=none
+/ip ipsec identity
+add auth-method=pre-shared-key disabled=no generate-policy=port-strict \
+    mode-config=VPN peer=vpn policy-template-group=vpn
+/ip ipsec policy
+set 0 disabled=no dst-address=::/0 group=default proposal=default protocol=all \
+    src-address=::/0 template=yes
+add disabled=no dst-address=::/0 group=vpn proposal=vpn protocol=all \
+    src-address=::/0 template=yes
+/ip ipsec settings
+set accounting=yes interim-update=0s xauth-use-radius=no
