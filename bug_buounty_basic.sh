@@ -10,43 +10,6 @@ wait_for_dpkg_lock() {
     done
 }
 
-# Function to install Go using Snap
-install_go() {
-    echo "Installing Go via Snap..."
-    sudo snap install go --classic
-    echo "Go installation complete."
-}
-
-# Function to check if Go is installed
-check_go_installed() {
-    if command -v go &> /dev/null
-    then
-        echo "Go is installed"
-        go version
-    else
-        echo "Go is not installed. Installing Go..."
-        install_go
-        if command -v go &> /dev/null
-        then
-            echo "Go installation successful"
-            go version
-        else
-            echo "Go installation failed. Please check the installation steps."
-            exit 1
-        fi
-    fi
-}
-
-# Function to install Nuclei
-install_nuclei() {
-    echo "Installing Nuclei..."
-    go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest || {
-        echo "Failed to install Nuclei. Ensure Go is properly installed and environment variables are set."
-        exit 1
-    }
-    echo "Nuclei installation complete."
-}
-
 # Function to install Sublist3r
 install_sublist3r() {
     echo "Installing Sublist3r..."
@@ -65,6 +28,7 @@ install_subfinder() {
         echo "Failed to install Subfinder. Ensure Go is properly installed and environment variables are set."
         exit 1
     }
+    sudo mv $HOME/go/bin/subfinder /usr/local/bin/
     echo "Subfinder installation complete."
 }
 
@@ -78,6 +42,7 @@ install_dirsearch() {
     git clone https://github.com/maurosoria/dirsearch.git
     cd dirsearch
     sudo python3 setup.py install
+    sudo ln -s $(pwd)/dirsearch.py /usr/local/bin/dirsearch
     cd ..
     echo "Dirsearch installation complete."
 }
@@ -89,6 +54,7 @@ install_httpx() {
         echo "Failed to install httpx. Ensure Go is properly installed and environment variables are set."
         exit 1
     }
+    sudo mv $HOME/go/bin/httpx /usr/local/bin/
     echo "httpx installation complete."
 }
 
@@ -129,13 +95,55 @@ check_subfinder_installed() {
 
 # Function to check if Dirsearch is installed
 check_dirsearch_installed() {
-    if [ -d "dirsearch" ]
+    if command -v dirsearch &> /dev/null
     then
         echo "Dirsearch is installed"
     else
         echo "Dirsearch is not installed. Installing Dirsearch..."
         install_dirsearch
     fi
+}
+
+# Function to install Go using apt
+install_go() {
+    echo "Installing Go using apt..."
+    wait_for_dpkg_lock
+    sudo apt update
+    wait_for_dpkg_lock
+    sudo apt install -y golang-go
+    echo "Go installation complete."
+}
+
+# Function to check if Go is installed
+check_go_installed() {
+    if command -v go &> /dev/null
+    then
+        echo "Go is installed"
+        go version
+    else
+        echo "Go is not installed. Installing Go..."
+        install_go
+        if command -v go &> /dev/null
+        then
+            echo "Go installation successful"
+            go version
+        else
+            echo "Go installation failed. Please check the installation steps."
+            exit 1
+        fi
+    fi
+}
+
+# Function to install Nuclei
+install_nuclei() {
+    echo "Installing Nuclei..."
+    git clone https://github.com/projectdiscovery/nuclei.git
+    cd nuclei/v2/cmd/nuclei
+    go build
+    sudo mv nuclei /usr/local/bin/
+    cd ../../../..
+    rm -rf nuclei
+    echo "Nuclei installation complete."
 }
 
 # Function to check if httpx is installed
@@ -151,11 +159,6 @@ check_httpx_installed() {
 }
 
 # Main script execution
-echo "Checking Go installation..."
-check_go_installed
-
-echo "Checking Nuclei installation..."
-check_nuclei_installed
 
 echo "Checking Sublist3r installation..."
 check_sublist3r_installed
@@ -165,6 +168,12 @@ check_subfinder_installed
 
 echo "Checking Dirsearch installation..."
 check_dirsearch_installed
+
+echo "Checking Go installation..."
+check_go_installed
+
+echo "Checking Nuclei installation..."
+check_nuclei_installed
 
 echo "Checking httpx installation..."
 check_httpx_installed
