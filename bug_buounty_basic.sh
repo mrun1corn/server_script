@@ -10,6 +10,36 @@ wait_for_dpkg_lock() {
     done
 }
 
+# Function to check if Go is installed
+check_go_installed() {
+    if command -v go &> /dev/null
+    then
+        echo "Go is installed"
+        go version
+    else
+        echo "Go is not installed. Installing Go..."
+        install_go
+        if command -v go &> /dev/null
+        then
+            echo "Go installation successful"
+            go version
+        else
+            echo "Go installation failed. Please check the installation steps."
+            exit 1
+        fi
+    fi
+}
+
+# Function to install Go using apt
+install_go() {
+    echo "Installing Go using apt..."
+    wait_for_dpkg_lock
+    sudo apt update
+    wait_for_dpkg_lock
+    sudo apt install -y golang-go
+    echo "Go installation complete."
+}
+
 # Function to install Sublist3r
 install_sublist3r() {
     echo "Installing Sublist3r..."
@@ -37,6 +67,7 @@ install_dirsearch() {
     echo "Installing Dirsearch..."
     wait_for_dpkg_lock
     sudo apt update
+	sudo apt install git
     wait_for_dpkg_lock
     sudo apt install -y git python3 python3-pip
     git clone https://github.com/maurosoria/dirsearch.git
@@ -104,36 +135,6 @@ check_dirsearch_installed() {
     fi
 }
 
-# Function to install Go using apt
-install_go() {
-    echo "Installing Go using apt..."
-    wait_for_dpkg_lock
-    sudo apt update
-    wait_for_dpkg_lock
-    sudo apt install -y golang-go
-    echo "Go installation complete."
-}
-
-# Function to check if Go is installed
-check_go_installed() {
-    if command -v go &> /dev/null
-    then
-        echo "Go is installed"
-        go version
-    else
-        echo "Go is not installed. Installing Go..."
-        install_go
-        if command -v go &> /dev/null
-        then
-            echo "Go installation successful"
-            go version
-        else
-            echo "Go installation failed. Please check the installation steps."
-            exit 1
-        fi
-    fi
-}
-
 # Function to install Nuclei
 install_nuclei() {
     echo "Installing Nuclei..."
@@ -160,17 +161,17 @@ check_httpx_installed() {
 
 # Main script execution
 
+echo "Checking Go installation..."
+check_go_installed
+
+echo "Checking Dirsearch installation..."
+check_dirsearch_installed
+
 echo "Checking Sublist3r installation..."
 check_sublist3r_installed
 
 echo "Checking Subfinder installation..."
 check_subfinder_installed
-
-echo "Checking Dirsearch installation..."
-check_dirsearch_installed
-
-echo "Checking Go installation..."
-check_go_installed
 
 echo "Checking Nuclei installation..."
 check_nuclei_installed
