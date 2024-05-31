@@ -10,6 +10,36 @@ wait_for_dpkg_lock() {
     done
 }
 
+# Function to install required packages
+install_required_packages() {
+    echo "Installing required packages..."
+    wait_for_dpkg_lock
+    sudo apt update -y
+    wait_for_dpkg_lock
+    sudo apt install -y wget curl python3 python3-pip git
+    echo "Required packages installation complete."
+}
+
+# Function to get the latest Go version
+get_latest_go_version() {
+    echo "Fetching the latest version of Go..."
+    latest_version=$(curl -s https://go.dev/VERSION?m=text | head -1)
+    echo "Latest Go version is $latest_version"
+}
+
+# Function to install the latest version of Go
+install_latest_go() {
+    get_latest_go_version
+    echo "Installing Go $latest_version..."
+    wget "https://go.dev/dl/${latest_version}.linux-amd64.tar.gz"
+    sudo rm -rf /usr/local/go
+    sudo tar -C /usr/local -xzf "${latest_version}.linux-amd64.tar.gz"
+    rm "${latest_version}.linux-amd64.tar.gz"
+    echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.profile
+    export PATH=$PATH:/usr/local/go/bin
+    echo "Go $latest_version installation complete."
+}
+
 # Function to check if Go is installed
 check_go_installed() {
     if command -v go &> /dev/null
@@ -17,8 +47,8 @@ check_go_installed() {
         echo "Go is installed"
         go version
     else
-        echo "Go is not installed. Installing Go..."
-        install_go
+        echo "Go is not installed. Installing the latest version of Go..."
+        install_latest_go
         if command -v go &> /dev/null
         then
             echo "Go installation successful"
@@ -30,23 +60,9 @@ check_go_installed() {
     fi
 }
 
-# Function to install Go using apt
-install_go() {
-    echo "Installing Go using apt..."
-    wait_for_dpkg_lock
-    sudo apt update
-    wait_for_dpkg_lock
-    sudo apt install -y golang-go
-    echo "Go installation complete."
-}
-
 # Function to install Sublist3r
 install_sublist3r() {
     echo "Installing Sublist3r..."
-    wait_for_dpkg_lock
-    sudo apt update
-    wait_for_dpkg_lock
-    sudo apt install -y python3 python3-pip
     pip3 install sublist3r
     echo "Sublist3r installation complete."
 }
@@ -65,11 +81,6 @@ install_subfinder() {
 # Function to install Dirsearch
 install_dirsearch() {
     echo "Installing Dirsearch..."
-    wait_for_dpkg_lock
-    sudo apt update
-	sudo apt install git
-    wait_for_dpkg_lock
-    sudo apt install -y git python3 python3-pip
     git clone https://github.com/maurosoria/dirsearch.git
     cd dirsearch
     sudo python3 setup.py install
@@ -87,6 +98,20 @@ install_httpx() {
     }
     sudo mv $HOME/go/bin/httpx /usr/local/bin/
     echo "httpx installation complete."
+}
+
+# Function to install Nuclei
+install_nuclei() {
+    echo "Installing Nuclei..."
+    go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest || {
+        echo "Failed to install Nuclei. Ensure Go is properly installed and environment variables are set."
+        exit 1
+    }
+    sudo mv $HOME/go/bin/nuclei /usr/local/bin/
+    echo "Nuclei installation complete."
+	echo "updating nuclei"
+	sudo nuclei --update
+	sudo nuclei --update-templates
 }
 
 # Function to check if Nuclei is installed
@@ -135,18 +160,6 @@ check_dirsearch_installed() {
     fi
 }
 
-# Function to install Nuclei
-install_nuclei() {
-    echo "Installing Nuclei..."
-    git clone https://github.com/projectdiscovery/nuclei.git
-    cd nuclei/v2/cmd/nuclei
-    go build
-    sudo mv nuclei /usr/local/bin/
-    cd ../../../..
-    rm -rf nuclei
-    echo "Nuclei installation complete."
-}
-
 # Function to check if httpx is installed
 check_httpx_installed() {
     if command -v httpx &> /dev/null
@@ -161,17 +174,20 @@ check_httpx_installed() {
 
 # Main script execution
 
+echo "Installing required packages..."
+install_required_packages
+
 echo "Checking Go installation..."
 check_go_installed
-
-echo "Checking Dirsearch installation..."
-check_dirsearch_installed
 
 echo "Checking Sublist3r installation..."
 check_sublist3r_installed
 
 echo "Checking Subfinder installation..."
 check_subfinder_installed
+
+echo "Checking Dirsearch installation..."
+check_dirsearch_installed
 
 echo "Checking Nuclei installation..."
 check_nuclei_installed
